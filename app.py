@@ -11,7 +11,9 @@ ROLE_SKILLS = {
     "Software Developer": ["python", "java", "sql", "data structures", "oops"],
     "Data Scientist": ["python", "machine learning", "statistics", "pandas", "sql"],
     "AI Engineer": ["python", "deep learning", "tensorflow", "nlp"],
-    "Web Developer": ["html", "css", "javascript", "react"]
+    "Web Developer": ["html", "css", "javascript", "react"],
+    "Java Developer":["java"],
+    "Python Developer:["python"]
 }
 
 # ---------------- PDF Reader ----------------
@@ -121,4 +123,5 @@ with recruiter_tab:
 
         st.markdown("### ❌ Missing Skills")
         st.error(", ".join(missing) if missing else "No missing skills")
+
 
