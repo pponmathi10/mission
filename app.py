@@ -55,7 +55,7 @@ certifications = st.text_input("Certifications")
 experience = st.number_input("Experience (Years)", 0, 40, 0)
 job_role = st.text_input("Job Role Applied For")
 
-st.subheader("📤 Upload Resume (Optional)")
+st.subheader("📤 Upload Resume ")
 uploaded_file = st.file_uploader("Upload PDF or TXT", type=["pdf", "txt"])
 
 # ---------------- SCREEN BUTTON ----------------
@@ -87,3 +87,4 @@ if st.button("🚀 Screen Resume"):
 
         st.success(f"Decision: {result}")
         st.info(f"Confidence Score: {confidence:.2f}%")
+
