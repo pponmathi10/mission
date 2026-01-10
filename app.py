@@ -5,14 +5,14 @@ import PyPDF2
 st.set_page_config(page_title="AI Resume Screening", layout="wide")
 
 st.markdown("<h1 style='text-align:center;'>🤖 Intelligent Resume Screening System</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Skill & Role Based Candidate Selection</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center;'>Explainable AI for Resume Screening</p>", unsafe_allow_html=True)
 st.markdown("---")
 
 # ---------------- SESSION STORAGE ----------------
 if "candidates" not in st.session_state:
     st.session_state.candidates = []
 
-# ---------------- JOB ROLE REQUIREMENTS ----------------
+# ---------------- JOB ROLE SKILLS ----------------
 JOB_SKILLS = {
     "Data Scientist": ["python", "machine learning", "sql", "statistics", "pandas"],
     "AI Engineer": ["python", "deep learning", "tensorflow", "pytorch", "nlp"],
@@ -21,7 +21,7 @@ JOB_SKILLS = {
     "Cybersecurity Analyst": ["network security", "linux", "ethical hacking"]
 }
 
-# ---------------- PDF TEXT EXTRACTION ----------------
+# ---------------- PDF READER ----------------
 def read_pdf(file):
     reader = PyPDF2.PdfReader(file)
     text = ""
@@ -30,15 +30,16 @@ def read_pdf(file):
             text += page.extract_text()
     return text.lower()
 
-# ---------------- AI SCORING FUNCTION ----------------
-def calculate_ai_score(candidate_text, role):
-    required_skills = JOB_SKILLS.get(role, [])
-    if not required_skills:
-        return 0
+# ---------------- AI LOGIC ----------------
+def evaluate_candidate(text, role):
+    required = JOB_SKILLS.get(role, [])
+    matched = [skill for skill in required if skill in text]
+    missing = [skill for skill in required if skill not in text]
 
-    matched = sum(1 for skill in required_skills if skill in candidate_text)
-    score = int((matched / len(required_skills)) * 100)
-    return score
+    score = int((len(matched) / len(required)) * 100) if required else 0
+    decision = "SELECT" if score >= 60 else "REJECT"
+
+    return score, decision, matched, missing
 
 # ---------------- TABS ----------------
 candidate_tab, recruiter_tab = st.tabs(["🧑 Candidate View", "🧑‍💼 Recruiter View"])
@@ -52,7 +53,7 @@ with candidate_tab:
     name = st.text_input("Candidate Name")
     role = st.selectbox("Job Role Applied For", list(JOB_SKILLS.keys()))
     skills = st.text_input("Skills (comma separated)")
-    education = st.selectbox("Education", ["B.E","B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
+    education = st.selectbox("Education", ["B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
     experience = st.slider("Experience (Years)", 0, 30, 1)
 
     uploaded_file = st.file_uploader("Upload Resume (Optional)", type=["pdf", "txt"])
@@ -77,20 +78,36 @@ with candidate_tab:
             st.warning("Please enter candidate name")
             st.stop()
 
-        ai_score = calculate_ai_score(combined_text, role)
-        decision = "SELECT" if ai_score >= 60 else "REJECT"
+        ai_score, decision, matched, missing = evaluate_candidate(combined_text, role)
+
+        improvement_msg = (
+            "Improve the following skills: " + ", ".join(missing)
+            if missing else "Profile meets all required skills"
+        )
 
         st.session_state.candidates.append({
             "Name": name,
             "Role": role,
-            "Skills": skills,
-            "Experience": experience,
             "AI Score": ai_score,
-            "Decision": decision
+            "Decision": decision,
+            "Matched Skills": ", ".join(matched),
+            "Missing Skills": ", ".join(missing),
+            "Improvement": improvement_msg
         })
 
-        st.success(f"Decision: {decision}")
-        st.info(f"AI Score: {ai_score} / 100")
+        st.markdown("## 📊 Evaluation Result")
+        st.metric("AI Score", f"{ai_score}/100")
+
+        if decision == "SELECT":
+            st.success("✅ Decision: SELECT")
+            st.write("🎯 Strong skill match for the role.")
+        else:
+            st.error("❌ Decision: REJECT")
+            st.write("⚠️ Reason for rejection:")
+            st.write(f"• Missing skills: {', '.join(missing)}")
+            st.write("📈 What to improve:")
+            st.info(improvement_msg)
+
         st.progress(ai_score / 100)
 
 # =====================================================
@@ -112,14 +129,18 @@ with recruiter_tab:
         col3.metric("Rejected", rejected)
 
         st.markdown("### ✅ Selected Candidates")
-        selected_list = [c for c in st.session_state.candidates if c["Decision"] == "SELECT"]
-        st.dataframe(selected_list, use_container_width=True)
+        st.dataframe(
+            [c for c in st.session_state.candidates if c["Decision"] == "SELECT"],
+            use_container_width=True
+        )
 
-        st.markdown("### ❌ Rejected Candidates")
-        rejected_list = [c for c in st.session_state.candidates if c["Decision"] == "REJECT"]
-        st.dataframe(rejected_list, use_container_width=True)
+        st.markdown("### ❌ Rejected Candidates (With Reasons)")
+        st.dataframe(
+            [c for c in st.session_state.candidates if c["Decision"] == "REJECT"],
+            use_container_width=True
+        )
 
-        st.markdown("### 🏆 Top Candidates (By AI Score)")
+        st.markdown("### 🏆 Top Candidates")
         ranked = sorted(
             st.session_state.candidates,
             key=lambda x: x["AI Score"],
