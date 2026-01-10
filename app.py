@@ -7,7 +7,7 @@ import PyPDF2
 st.set_page_config(page_title="AI Resume Screening", layout="wide")
 
 st.markdown("<h1 style='text-align:center;'>🤖 Intelligent Resume Screening System</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>Candidate & Recruiter View (No CSV)</p>", unsafe_allow_html=True)
+
 st.markdown("---")
 
 # ---------------- SESSION STORAGE ----------------
@@ -126,5 +126,6 @@ with recruiter_tab:
             reverse=True
         )
         st.dataframe(ranked[:5], use_container_width=True)
+
 
 
