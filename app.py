@@ -12,6 +12,7 @@ ROLE_SKILLS = {
     "Data Scientist": ["python", "machine learning", "statistics", "pandas", "sql"],
     "AI Engineer": ["python", "deep learning", "tensorflow", "nlp"],
     "Web Developer": ["html", "css", "javascript", "react"]
+    "Java Developer":["java"]
 }
 
 # ---------------- PDF Reader ----------------
@@ -90,4 +91,5 @@ if st.button("🚀 Screen Resume"):
     else:
         st.markdown("### 🎯 Recommendation")
         st.success("You are a strong fit for this role!")
+
 
