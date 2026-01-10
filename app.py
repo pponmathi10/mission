@@ -4,16 +4,17 @@ import PyPDF2
 st.set_page_config(page_title="AI Resume Screening", layout="wide")
 
 st.title("🤖 Intelligent Resume Screening System")
-st.caption("Candidate View & Recruiter View")
+st.caption("Candidate View & Recruiter View | 50% Skill Match Rule")
 
 # ---------------- Job Role Skills ----------------
 ROLE_SKILLS = {
-    "Software Developer": ["python", "java", "sql", "data structures", "oops"],
+    "Java Developer": ["java", "spring", "sql", "oops", "data structures"],
+    "Python Developer": ["python", "django", "flask", "sql", "oops"],
+    "Machine Learning Engineer": ["python", "machine learning", "scikit-learn", "statistics", "pandas"],
+    "Software Developer": ["java", "python", "sql", "data structures", "oops"],
     "Data Scientist": ["python", "machine learning", "statistics", "pandas", "sql"],
     "AI Engineer": ["python", "deep learning", "tensorflow", "nlp"],
-    "Web Developer": ["html", "css", "javascript", "react"],
-    "Java Developer":["java","java full stack"],
-    "Python Developer":["python"]
+    "Web Developer": ["html", "css", "javascript", "react"]
 }
 
 # ---------------- PDF Reader ----------------
@@ -32,7 +33,9 @@ def evaluate(text, role):
     missing = [s for s in required if s not in text]
 
     score = int((len(matched) / len(required)) * 100)
-    decision = "SELECT" if score >= 60 else "REJECT"
+
+    # 50% Rule
+    decision = "SELECT" if score >= 50 else "REJECT"
 
     return score, decision, matched, missing, required
 
@@ -74,17 +77,14 @@ with candidate_tab:
         st.markdown(f"### 🧾 Decision: **{decision}**")
 
         if decision == "SELECT":
-            st.success("You are suitable for this role.")
-            st.info("Reason: You match most of the required skills.")
+            st.success("✅ You are selected because you meet more than 50% of required skills.")
+            st.info("Matched Skills: " + ", ".join(matched))
         else:
-            st.error("You are not suitable for this role.")
-            st.warning("Reason: Important skills are missing.")
-
-            st.markdown("### ❌ Missing Skills")
-            st.write(", ".join(missing))
+            st.error("❌ You are rejected because skill match is below 50%.")
+            st.warning("Missing Skills: " + ", ".join(missing))
 
             st.markdown("### 📈 What You Need to Improve")
-            st.info("Learn and practice: " + ", ".join(missing))
+            st.info("Focus on learning: " + ", ".join(missing))
 
 # ==================================================
 # 🧑‍💼 RECRUITER VIEW
@@ -109,7 +109,6 @@ with recruiter_tab:
         score, decision, matched, missing, required = evaluate(resume_text, role)
 
         st.markdown("## 📊 Screening Summary")
-
         st.metric("AI Score", f"{score}/100")
         st.progress(score / 100)
 
@@ -123,7 +122,4 @@ with recruiter_tab:
 
         st.markdown("### ❌ Missing Skills")
         st.error(", ".join(missing) if missing else "No missing skills")
-
-
-
 
