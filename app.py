@@ -8,8 +8,8 @@ st.caption("Automatic Resume-Based Screening | 50% Rule")
 
 # ---------------- Job Role Skills ----------------
 ROLE_SKILLS = {
-    "Java Developer": ["java", "spring", "sql", "oops", "data structures"],
-    "Python Developer": ["python", "django", "flask", "sql", "oops"],
+    "Java Developer": ["java", "java full stack"],
+    "Python Developer": ["python"],
     "Machine Learning Engineer": ["python", "machine learning", "scikit-learn", "statistics", "pandas"],
     "Software Developer": ["java", "python", "sql", "data structures", "oops"],
     "Data Scientist": ["python", "machine learning", "statistics", "pandas", "sql"],
@@ -119,4 +119,5 @@ with recruiter_tab:
 
         st.markdown("### ❌ Missing Skills")
         st.error(", ".join(missing) if missing else "No missing skills")
+
 
