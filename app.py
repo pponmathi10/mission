@@ -50,7 +50,7 @@ with candidate_tab:
 
     name = st.text_input("Candidate Name")
     skills = st.text_input("Skills")
-    education = st.selectbox("Education", ["B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
+    education = st.selectbox("Education", ["B.E","B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
     certifications = st.text_input("Certifications")
     experience = st.slider("Experience (Years)", 0, 30, 1)
     job_role = st.text_input("Job Role Applied For")
@@ -126,4 +126,5 @@ with recruiter_tab:
             reverse=True
         )
         st.dataframe(ranked[:5], use_container_width=True)
+
 
