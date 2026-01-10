@@ -10,11 +10,11 @@ st.caption("Candidate View & Recruiter View | 50% Skill Match Rule")
 ROLE_SKILLS = {
     "Java Developer": ["java", "spring", "sql", "oops", "data structures"],
     "Python Developer": ["python", "django", "flask", "sql", "oops"],
-    "Machine Learning Engineer": ["python", "machine learning", "scikit-learn", "statistics", "pandas"],
     "Software Developer": ["java", "python", "sql", "data structures", "oops"],
     "Data Scientist": ["python", "machine learning", "statistics", "pandas", "sql"],
     "AI Engineer": ["python", "deep learning", "tensorflow", "nlp"],
-    "Web Developer": ["html", "css", "javascript", "react"]
+    "Web Developer": ["html", "css", "javascript", "react"],
+    "Machine Learning Engineer": ["python", "machine learning", "scikit-learn", "statistics", "pandas"]
 }
 
 # ---------------- PDF Reader ----------------
@@ -122,4 +122,5 @@ with recruiter_tab:
 
         st.markdown("### ❌ Missing Skills")
         st.error(", ".join(missing) if missing else "No missing skills")
+
 
