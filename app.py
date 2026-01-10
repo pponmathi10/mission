@@ -52,7 +52,7 @@ with candidate_tab:
     name = st.text_input("Candidate Name")
     role = st.selectbox("Job Role Applied For", list(JOB_SKILLS.keys()))
     skills = st.text_input("Skills (comma separated)")
-    education = st.selectbox("Education", ["B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
+    education = st.selectbox("Education", ["B.E","B.Sc", "B.Tech", "MBA", "M.Sc", "PhD"])
     experience = st.slider("Experience (Years)", 0, 30, 1)
 
     uploaded_file = st.file_uploader("Upload Resume (Optional)", type=["pdf", "txt"])
@@ -126,3 +126,4 @@ with recruiter_tab:
             reverse=True
         )
         st.dataframe(ranked, use_container_width=True)
+
