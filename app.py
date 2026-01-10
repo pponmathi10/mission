@@ -5,10 +5,16 @@ from sklearn.linear_model import LogisticRegression
 import PyPDF2
 
 # ---------------- PAGE CONFIG ----------------
-st.set_page_config(page_title="AI Resume Screening", layout="centered")
+st.set_page_config(page_title="AI Resume Screening", layout="wide")
 
-st.markdown("<h1 style='text-align:center;'>🤖 Intelligent Resume Screening System</h1>", unsafe_allow_html=True)
-st.markdown("<p style='text-align:center;'>NLP & Machine Learning Based Candidate Evaluation</p>", unsafe_allow_html=True)
+st.markdown(
+    "<h1 style='text-align:center;'>🤖 Intelligent Resume Screening System</h1>",
+    unsafe_allow_html=True
+)
+st.markdown(
+    "<p style='text-align:center;'>Candidate & Recruiter Dashboard using NLP and ML</p>",
+    unsafe_allow_html=True
+)
 st.markdown("---")
 
 # ---------------- LOAD DATA ----------------
@@ -48,75 +54,95 @@ def read_pdf(file):
             text += content
     return text
 
-# ---------------- USER INPUT ----------------
-st.subheader("🧑 Candidate Profile")
+# ---------------- TABS ----------------
+candidate_tab, recruiter_tab = st.tabs(["🧑 Candidate View", "🧑‍💼 Recruiter View"])
 
-skills = st.text_input("🔹 Skills (comma separated)")
-education = st.selectbox("🎓 Education", ["B.Sc", "B.Tech", "M.Sc", "MBA", "PhD"])
-certifications = st.text_input("📜 Certifications")
-experience = st.slider("🕒 Experience (Years)", 0, 30, 1)
-job_role = st.text_input("💼 Job Role Applied For")
+# =========================================================
+# 🧑 CANDIDATE VIEW
+# =========================================================
+with candidate_tab:
+    st.subheader("Candidate Profile")
 
-st.subheader("📤 Resume Upload (Optional)")
-uploaded_file = st.file_uploader("Upload Resume (PDF or TXT)", type=["pdf", "txt"])
+    skills = st.text_input("Skills (comma separated)")
+    education = st.selectbox("Education", ["B.Sc", "B.Tech", "M.Sc", "MBA", "PhD"])
+    certifications = st.text_input("Certifications")
+    experience = st.slider("Experience (Years)", 0, 30, 1)
+    job_role = st.text_input("Job Role Applied For")
 
-st.markdown("---")
+    st.markdown("### Upload Resume (Optional)")
+    uploaded_file = st.file_uploader("PDF or TXT", type=["pdf", "txt"])
 
-# ---------------- SCREEN BUTTON ----------------
-if st.button("🚀 Evaluate Resume"):
+    if st.button("🚀 Evaluate My Resume"):
 
-    resume_text = ""
+        resume_text = ""
 
-    if uploaded_file:
-        if uploaded_file.type == "application/pdf":
-            resume_text = read_pdf(uploaded_file)
+        if uploaded_file:
+            if uploaded_file.type == "application/pdf":
+                resume_text = read_pdf(uploaded_file)
+            else:
+                resume_text = uploaded_file.read().decode("utf-8")
+
+        combined_text = (
+            resume_text + " " +
+            skills + " " +
+            education + " " +
+            certifications + " " +
+            job_role + " " +
+            str(experience)
+        )
+
+        if combined_text.strip() == "":
+            st.warning("Please enter details or upload resume")
+            st.stop()
+
+        vector = vectorizer.transform([combined_text])
+        prediction = model.predict(vector)[0]
+        confidence = max(model.predict_proba(vector)[0]) * 100
+        ai_score = int(confidence)
+
+        st.markdown("## 📊 Screening Result")
+
+        col1, col2 = st.columns(2)
+        col1.metric("AI Confidence", f"{confidence:.2f}%")
+        col2.metric("AI Score", f"{ai_score}/100")
+
+        if prediction == "Hire":
+            st.success("✅ Recruiter Decision: HIRE")
         else:
-            resume_text = uploaded_file.read().decode("utf-8")
+            st.error("❌ Recruiter Decision: REJECT")
 
-    combined_text = (
-        resume_text + " " +
-        skills + " " +
-        education + " " +
-        certifications + " " +
-        job_role + " " +
-        str(experience)
+        st.progress(ai_score / 100)
+
+# =========================================================
+# 🧑‍💼 RECRUITER VIEW
+# =========================================================
+with recruiter_tab:
+    st.subheader("Recruiter Dashboard")
+
+    col1, col2, col3 = st.columns(3)
+
+    col1.metric("Total Candidates", len(df))
+    col2.metric("Hired", (df["Recruiter Decision"] == "Hire").sum())
+    col3.metric("Rejected", (df["Recruiter Decision"] == "Reject").sum())
+
+    st.markdown("### Filter Candidates")
+
+    selected_role = st.selectbox(
+        "Filter by Job Role",
+        ["All"] + sorted(df["Job Role"].unique().tolist())
     )
 
-    if combined_text.strip() == "":
-        st.warning("⚠️ Please enter details or upload a resume")
-        st.stop()
+    filtered_df = df.copy()
+    if selected_role != "All":
+        filtered_df = filtered_df[filtered_df["Job Role"] == selected_role]
 
-    vector = vectorizer.transform([combined_text])
-    prediction = model.predict(vector)[0]
-    confidence = max(model.predict_proba(vector)[0]) * 100
+    st.markdown("### Candidate List")
+    st.dataframe(filtered_df, use_container_width=True)
 
-    # AI Score
-    ai_score = int(confidence)
-
-    st.markdown("## 📊 Screening Result")
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.metric("AI Confidence", f"{confidence:.2f}%")
-
-    with col2:
-        st.metric("AI Score", f"{ai_score} / 100")
-
-    if prediction == "Hire":
-        st.success("✅ **Recruiter Decision: HIRE**")
-        st.markdown("🎯 *Candidate profile strongly matches job requirements.*")
+    st.markdown("### Top Candidates (Based on AI Score)")
+    if "AI Score (0-100)" in filtered_df.columns:
+        ranked = filtered_df.sort_values("AI Score (0-100)", ascending=False)
+        st.dataframe(ranked.head(5), use_container_width=True)
     else:
-        st.error("❌ **Recruiter Decision: REJECT**")
-        st.markdown("⚠️ *Candidate profile does not sufficiently match requirements.*")
+        st.info("AI Score column not available in dataset")
 
-    # Skill Match Indicator
-    skill_count = len(skills.split(",")) if skills else 0
-
-    st.markdown("### 🔍 Profile Summary")
-    st.write(f"• **Skills Provided:** {skill_count}")
-    st.write(f"• **Education Level:** {education}")
-    st.write(f"• **Experience:** {experience} years")
-    st.write(f"• **Applied Role:** {job_role}")
-
-    st.progress(min(ai_score / 100, 1.0))
