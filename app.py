@@ -1,4 +1,3 @@
-
 import streamlit as st
 import PyPDF2
 
@@ -13,92 +12,25 @@ st.caption("Candidate Portal | Recruiter Portal (Authenticated)")
 ROLE_SKILLS = {
     "Java Developer": [
         "java", "spring", "spring boot", "hibernate",
-        "sql", "mysql", "postgresql",
-        "oops", "data structures", "algorithms",
-        "rest api", "microservices"
+        "sql", "mysql", "oops", "data structures"
     ],
-
     "Python Developer": [
-        "python", "django", "flask", "fastapi",
-        "sql", "sqlite", "postgresql",
-        "oops", "rest api", "unit testing"
+        "python", "django", "flask", "sql", "oops"
     ],
-
     "Machine Learning Engineer": [
         "python", "machine learning", "scikit-learn",
-        "pandas", "numpy", "statistics",
-        "model training", "feature engineering",
-        "data preprocessing", "ml algorithms"
+        "pandas", "numpy", "statistics"
     ],
-
     "Data Scientist": [
         "python", "machine learning", "statistics",
-        "pandas", "numpy", "sql",
-        "data visualization", "matplotlib", "seaborn",
-        "hypothesis testing", "feature engineering"
+        "pandas", "sql", "data visualization"
     ],
-
-    "AI Engineer": [
-        "python", "deep learning", "tensorflow", "pytorch",
-        "neural networks", "cnn", "rnn",
-        "nlp", "computer vision", "model deployment"
-    ],
-
     "Web Developer": [
-        "html", "css", "javascript",
-        "react", "angular", "vue",
-        "bootstrap", "tailwind",
-        "rest api", "responsive design"
+        "html", "css", "javascript", "react", "bootstrap"
     ],
-
     "Full Stack Developer": [
-        "html", "css", "javascript",
-        "react", "node", "express",
-        "python", "django", "java",
-        "sql", "mongodb", "rest api"
-    ],
-
-    "Software Developer": [
-        "java", "python", "c++",
-        "data structures", "algorithms",
-        "oops", "sql", "git",
-        "problem solving"
-    ],
-
-    "DevOps Engineer": [
-        "linux", "shell scripting",
-        "docker", "kubernetes",
-        "ci/cd", "jenkins",
-        "aws", "azure", "gcp",
-        "monitoring"
-    ],
-
-    "Cloud Engineer": [
-        "aws", "azure", "gcp",
-        "cloud computing", "ec2", "s3",
-        "iam", "terraform",
-        "networking", "security"
-    ],
-
-    "Cyber Security Analyst": [
-        "network security", "ethical hacking",
-        "penetration testing", "vulnerability assessment",
-        "firewalls", "ids", "ips",
-        "cryptography", "incident response"
-    ],
-
-    "Business Analyst": [
-        "business analysis", "requirements gathering",
-        "sql", "excel",
-        "data analysis", "power bi", "tableau",
-        "stakeholder management"
-    ],
-
-    "UI/UX Designer": [
-        "ui design", "ux design",
-        "figma", "adobe xd",
-        "wireframing", "prototyping",
-        "user research", "usability testing"
+        "html", "css", "javascript", "react",
+        "node", "express", "python", "sql"
     ]
 }
 
@@ -143,12 +75,12 @@ candidate_tab, recruiter_tab = st.tabs(["🧑 Candidate Portal", "🧑‍💼 Re
 with candidate_tab:
     st.subheader("Candidate Resume Screening")
 
-    name = st.text_input("Candidate Name")
+    candidate_name = st.text_input("Candidate Name")
     role = st.selectbox("Job Role", ROLE_SKILLS.keys())
     resume_file = st.file_uploader("Upload Resume", type=["pdf", "txt"])
 
     if st.button("🚀 Screen Resume"):
-        if not name or not resume_file:
+        if not candidate_name or not resume_file:
             st.warning("Please enter name and upload resume")
             st.stop()
 
@@ -163,7 +95,7 @@ with candidate_tab:
         st.markdown(f"### 🧾 Decision: **{decision}**")
 
         if decision == "SELECTED":
-            st.success("🎉 Resume meets the job requirements")
+            st.success("🎉 Your resume matches the role requirements")
             st.info("Matched Skills: " + ", ".join(matched))
         else:
             st.error("❌ Resume does not meet minimum criteria")
@@ -172,33 +104,32 @@ with candidate_tab:
             st.info(", ".join(missing))
 
 # ==================================================
-# 🧑‍💼 RECRUITER PORTAL (CUSTOM AUTH)
+# 🧑‍💼 RECRUITER PORTAL (NO COMPANY NAME)
 # ==================================================
 with recruiter_tab:
     st.subheader("Recruiter Login")
 
     if not st.session_state.recruiter_logged_in:
-        user_name = st.text_input("Recruiter Name")
-        password = st.text_input("Create / Enter Password", type="password")
+        recruiter_name = st.text_input("Recruiter Name")
+        password = st.text_input("Password", type="password")
 
         if st.button("🔐 Login"):
             if recruiter_name and password:
                 st.session_state.recruiter_logged_in = True
-                st.session_state.recruiter_name  = recruiter_name
-                st.success(f"Welcome {recruiter_name}
+                st.session_state.recruiter_name = recruiter_name
+                st.success(f"Welcome Recruiter {recruiter_name}")
             else:
-                st.error("All fields are required")
+                st.error("Please enter name and password")
 
     else:
         st.subheader("📊 ATS Resume Evaluation Dashboard")
-        st.caption(f"Company: {st.session_state.company_name}")
 
         role = st.selectbox("Target Job Role", ROLE_SKILLS.keys())
-        resume_file = st.file_uploader("Upload Candidate Resume (Anonymous)", type=["pdf", "txt"])
+        resume_file = st.file_uploader("Upload Candidate Resume (Anonymous)", type=["pdf", "txt"], key="recruiter")
 
         if st.button("🔍 Run ATS Evaluation"):
             if not resume_file:
-                st.warning("Please upload resume")
+                st.warning("Upload resume to evaluate")
                 st.stop()
 
             resume_text = read_pdf(resume_file) if resume_file.type == "application/pdf" else resume_file.read().decode("utf-8").lower()
@@ -236,4 +167,3 @@ with recruiter_tab:
         if st.button("🚪 Logout"):
             st.session_state.recruiter_logged_in = False
             st.success("Logged out successfully")
-
