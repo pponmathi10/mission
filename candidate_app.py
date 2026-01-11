@@ -136,35 +136,80 @@ with recruiter_tab:
 
             score, decision, matched, missing, required = evaluate_resume(resume_text, role)
 
-            if score >= 70:
-                fit, badge = "HIGH FIT", "🟢 SHORTLIST"
-            elif score >= 50:
-                fit, badge = "MODERATE FIT", "🟡 HOLD"
-            else:
-                fit, badge = "LOW FIT", "🔴 REJECT"
+import streamlit as st
+import PyPDF2
 
-            st.markdown("## 🧠 ATS Screening Summary")
+st.set_page_config(page_title="Candidate Resume Screening", layout="centered")
 
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Skill Coverage", f"{score}%")
-            c2.metric("Skill Gaps", len(missing))
-            c3.metric("Role Fit", fit)
+st.title("🧑 Candidate Resume Screening")
+st.caption("AI-based resume evaluation")
 
-            st.progress(score / 100)
+# ==================================================
+# Job Roles & Skills
+# ==================================================
+ROLE_SKILLS = {
+    "Java Developer": ["java", "spring", "sql", "oops", "data structures"],
+    "Python Developer": ["python", "django", "flask", "sql"],
+    "Machine Learning Engineer": ["python", "machine learning", "pandas", "scikit-learn"],
+    "Data Scientist": ["python", "statistics", "sql", "machine learning"],
+    "Web Developer": ["html", "css", "javascript", "react"]
+}
 
-            st.markdown("### 📌 ATS Recommendation")
-            st.success(badge)
+# ==================================================
+# PDF Reader
+# ==================================================
+def read_pdf(file):
+    reader = PyPDF2.PdfReader(file)
+    text = ""
+    for page in reader.pages:
+        if page.extract_text():
+            text += page.extract_text()
+    return text.lower()
 
-            st.markdown("### 📋 Required Skills")
-            st.write(", ".join(required))
+# ==================================================
+# Resume Evaluation
+# ==================================================
+def evaluate_resume(text, role):
+    required = ROLE_SKILLS[role]
+    matched = [skill for skill in required if skill in text]
+    missing = [skill for skill in required if skill not in text]
 
-            st.markdown("### ✅ Detected Skills")
-            st.write(", ".join(matched) if matched else "None")
+    score = int((len(matched) / len(required)) * 100)
+    decision = "SELECTED" if score >= 50 else "REJECTED"
 
-            st.markdown("### ⚠️ Missing Skills (Internal)")
-            st.write(", ".join(missing) if missing else "None")
+    return score, decision, matched, missing
 
-        if st.button("🚪 Logout"):
-            st.session_state.recruiter_logged_in = False
-            st.success("Logged out successfully")
+# ==================================================
+# UI
+# ==================================================
+name = st.text_input("Candidate Name")
+role = st.selectbox("Select Job Role", ROLE_SKILLS.keys())
+resume_file = st.file_uploader("Upload Resume (PDF / TXT)", type=["pdf", "txt"])
 
+if st.button("🚀 Screen Resume"):
+    if not name or not resume_file:
+        st.warning("Please enter your name and upload resume")
+        st.stop()
+
+    resume_text = (
+        read_pdf(resume_file)
+        if resume_file.type == "application/pdf"
+        else resume_file.read().decode("utf-8").lower()
+    )
+
+    score, decision, matched, missing = evaluate_resume(resume_text, role)
+
+    st.markdown("## 📊 Screening Result")
+    st.metric("AI Match Score", f"{score}%")
+    st.progress(score / 100)
+
+    st.markdown(f"### 🧾 Decision: **{decision}**")
+
+    if decision == "SELECTED":
+        st.success("🎉 Congratulations! Your profile matches the role.")
+        st.info("Matched Skills: " + ", ".join(matched))
+    else:
+        st.error("❌ Your resume does not meet the minimum requirements.")
+        st.warning("Missing Skills: " + ", ".join(missing))
+        st.markdown("### 📈 Skills to Improve")
+        st.info(", ".join(missing))
