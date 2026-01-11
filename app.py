@@ -15,7 +15,7 @@ ROLE_SKILLS = {
         "sql", "mysql", "oops", "data structures"
     ],
     "Python Developer": [
-        "python", "django", "flask", "sql", "oops"
+        "python"
     ],
     "Machine Learning Engineer": [
         "python", "machine learning", "scikit-learn",
@@ -167,3 +167,4 @@ with recruiter_tab:
         if st.button("🚪 Logout"):
             st.session_state.recruiter_logged_in = False
             st.success("Logged out successfully")
+
