@@ -1,11 +1,10 @@
 import streamlit as st
-
+import PyPDF2
 
 # ---------------- Page Config ----------------
-st.set_page_config(page_title="Recruiter ATS", layout="wide")
+st.set_page_config(page_title="Recruiter ATS", layout="centered")
 
 st.title("🧑‍💼 Recruiter ATS Resume Screening")
-st.caption("Secure Recruiter Evaluation Portal")
 
 # ---------------- Role Skills ----------------
 ROLE_SKILLS = {
@@ -25,12 +24,12 @@ ROLE_SKILLS = {
 
 # ---------------- PDF Reader ----------------
 def read_pdf(file):
-    
+    reader = PyPDF2.PdfReader(file)
     text = ""
     for page in reader.pages:
-        extracted = page.extract_text()
-        if extracted:
-            text += extracted
+        page_text = page.extract_text()
+        if page_text:
+            text += page_text
     return text.lower()
 
 # ---------------- Resume Evaluation ----------------
@@ -51,63 +50,41 @@ def evaluate_resume(text, role):
     score = int((len(matched) / len(skills)) * 100)
 
     if (main_skill in text) or (len(matched) >= 2) or (score >= 50):
-        decision = "SELECT"
+        decision = "SELECTED"
     else:
-        decision = "REJECT"
+        decision = "REJECTED"
 
     return score, decision, matched, missing, skills
 
-# ---------------- Login State ----------------
-if "login" not in st.session_state:
-    st.session_state.login = False
+# ---------------- App UI ----------------
+role = st.selectbox("Select Job Role", list(ROLE_SKILLS.keys()))
+resume = st.file_uploader("Upload Resume", type=["pdf", "txt"])
 
-# ---------------- Login Page ----------------
-if not st.session_state.login:
-    st.subheader("🔐 Recruiter Login")
-
-    name = st.text_input("Recruiter Name")
-    password = st.text_input("Password", type="password")
-
-    if st.button("Login"):
-        if name != "" and password != "":
-            st.session_state.login = True
-            st.success("Login Successful")
+if st.button("Evaluate Resume"):
+    if resume is None:
+        st.warning("Please upload a resume file")
+    else:
+        if resume.type == "application/pdf":
+            resume_text = read_pdf(resume)
         else:
-            st.error("Enter both name and password")
+            resume_text = resume.read().decode("utf-8").lower()
 
-# ---------------- ATS Dashboard ----------------
-else:
-    st.subheader("📊 ATS Resume Screening")
+        score, decision, matched, missing, skills = evaluate_resume(resume_text, role)
 
-    role = st.selectbox("Select Job Role", ROLE_SKILLS.keys())
-    resume = st.file_uploader("Upload Resume", type=["pdf", "txt"])
+        st.subheader("📊 Screening Result")
+        st.metric("Skill Match Percentage", f"{score}%")
+        st.progress(score / 100)
 
-    if st.button("Evaluate Resume"):
-        if resume is None:
-            st.warning("Please upload resume")
-        
-            else:
-                text = resume.read().decode("utf-8").lower()
+        if decision == "SELECTED":
+            st.success("🟢 Candidate SELECTED")
+        else:
+            st.error("🔴 Candidate REJECTED")
 
-            score, decision, matched, missing, skills = evaluate_resume(text, role)
+        st.markdown("### Required Skills")
+        st.write(", ".join(skills))
 
-            st.markdown("## 🧠 Screening Result")
-            st.metric("Skill Match %", score)
-            st.progress(score / 100)
+        st.markdown("### Matched Skills")
+        st.write(", ".join(matched) if matched else "None")
 
-            if decision == "SELECT":
-                st.success("🟢 Candidate Selected")
-            else:
-                st.error("🔴 Candidate Rejected")
-
-            st.markdown("### Required Skills")
-            st.write(", ".join(skills))
-
-            st.markdown("### Matched Skills")
-            st.write(", ".join(matched) if matched else "None")
-
-            st.markdown("### Missing Skills")
-            st.write(", ".join(missing) if missing else "None")
-
-    if st.button("Logout"):
-        st.session_state.login = False
+        st.markdown("### Missing Skills")
+        st.write(", ".join(missing) if missing else "None")
