@@ -182,11 +182,10 @@ with recruiter_tab:
         password = st.text_input("Create / Enter Password", type="password")
 
         if st.button("🔐 Login"):
-            if recruiter_name and company_name and password:
+            if recruiter_name and password:
                 st.session_state.recruiter_logged_in = True
-                st.session_state.recruiter_name = recruiter_name
-                st.session_state.company_name = company_name
-                st.success(f"Welcome {recruiter_name} from {company_name}")
+                st.session_state.recruiter_name  = recruiter_name
+                st.success(f"Welcome {recruiter_name}
             else:
                 st.error("All fields are required")
 
@@ -237,3 +236,4 @@ with recruiter_tab:
         if st.button("🚪 Logout"):
             st.session_state.recruiter_logged_in = False
             st.success("Logged out successfully")
+
