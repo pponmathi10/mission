@@ -1,81 +1,73 @@
 import streamlit as st
-import PyPDF2
 
-# ---------------- Page Config ----------------
-st.set_page_config(page_title="Recruiter ATS", layout="centered")
 
-st.title("🧑‍💼 Recruiter ATS Resume Screening")
+# ---------------- Page Setup ----------------
+st.set_page_config(page_title="Simple Recruiter ATS", layout="centered")
 
-# ---------------- Role Skills ----------------
+st.title("📄 Simple Recruiter Resume Screening")
+st.caption("Lightweight ATS Logic (Error-Free Version)")
+
+# ---------------- Roles & Skills ----------------
 ROLE_SKILLS = {
     "Java Developer": {
         "main": "java",
-        "skills": ["java", "spring", "sql", "oops", "data structures"]
+        "skills": ["java", "spring", "sql", "oops"]
     },
     "Python Developer": {
         "main": "python",
-        "skills": ["python", "django", "flask", "sql", "oops"]
+        "skills": ["python", "django", "flask", "sql"]
     },
     "Machine Learning Engineer": {
         "main": "machine learning",
-        "skills": ["python", "machine learning", "pandas", "numpy", "scikit-learn"]
+        "skills": ["python", "machine learning", "pandas", "numpy"]
     }
 }
 
-# ---------------- PDF Reader ----------------
-def read_pdf(file):
-    reader = PyPDF2.PdfReader(file)
-    text = ""
-    for page in reader.pages:
-        page_text = page.extract_text()
-        if page_text:
-            text += page_text
-    return text.lower()
+# ---------------- Resume Reader ----------------
+def extract_text(file):
+    if file.type == "application/pdf":
+        reader = PyPDF2.PdfReader(file)
+        text = ""
+        for page in reader.pages:
+            if page.extract_text():
+                text += page.extract_text()
+        return text.lower()
+    else:
+        return file.read().decode("utf-8").lower()
 
-# ---------------- Resume Evaluation ----------------
-def evaluate_resume(text, role):
+# ---------------- Evaluation ----------------
+def screen_resume(text, role):
     main_skill = ROLE_SKILLS[role]["main"]
     skills = ROLE_SKILLS[role]["skills"]
 
-    matched = []
-    for skill in skills:
-        if skill in text:
-            matched.append(skill)
-
-    missing = []
-    for skill in skills:
-        if skill not in text:
-            missing.append(skill)
+    matched = [s for s in skills if s in text]
+    missing = [s for s in skills if s not in text]
 
     score = int((len(matched) / len(skills)) * 100)
 
-    if (main_skill in text) or (len(matched) >= 2) or (score >= 50):
-        decision = "SELECTED"
+    if main_skill in text or len(matched) >= 2 or score >= 50:
+        result = "SELECTED"
     else:
-        decision = "REJECTED"
+        result = "REJECTED"
 
-    return score, decision, matched, missing, skills
+    return score, result, matched, missing, skills
 
-# ---------------- App UI ----------------
-role = st.selectbox("Select Job Role", list(ROLE_SKILLS.keys()))
+# ---------------- UI ----------------
+role = st.selectbox("Choose Job Role", ROLE_SKILLS.keys())
 resume = st.file_uploader("Upload Resume", type=["pdf", "txt"])
 
-if st.button("Evaluate Resume"):
+if st.button("Screen Resume"):
     if resume is None:
-        st.warning("Please upload a resume file")
+        st.warning("Please upload resume")
     else:
-        if resume.type == "application/pdf":
-            resume_text = read_pdf(resume)
-        else:
-            resume_text = resume.read().decode("utf-8").lower()
+        text = extract_text(resume)
+        score, result, matched, missing, skills = screen_resume(text, role)
 
-        score, decision, matched, missing, skills = evaluate_resume(resume_text, role)
-
-        st.subheader("📊 Screening Result")
-        st.metric("Skill Match Percentage", f"{score}%")
+        st.subheader("📊 Screening Outcome")
+        st.metric("Skill Match (%)", score)
         st.progress(score / 100)
 
-        if decision == "SELECTED":
+        if result == "SELECTED":
             st.success("🟢 Candidate SELECTED")
         else:
             st.error("🔴 Candidate REJECTED")
