@@ -25,7 +25,7 @@ ROLE_SKILLS = {
 
 # ---------------- PDF Reader ----------------
 def read_pdf(file):
-    reader = PyPDF2.PdfReader(file)
+    
     text = ""
     for page in reader.pages:
         extracted = page.extract_text()
@@ -85,9 +85,7 @@ else:
     if st.button("Evaluate Resume"):
         if resume is None:
             st.warning("Please upload resume")
-        else:
-            if resume.type == "application/pdf":
-                text = read_pdf(resume)
+        
             else:
                 text = resume.read().decode("utf-8").lower()
 
