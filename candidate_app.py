@@ -4,7 +4,7 @@ import PyPDF2
 st.set_page_config(page_title="Candidate Resume Screening", layout="wide")
 
 st.title("🧑 Candidate Resume Screening Portal")
-st.caption("AI-based Resume Evaluation")
+
 
 # ==================================================
 # 🧠 Job Roles, Main Skill & Required Skills
@@ -121,3 +121,4 @@ if st.button("🚀 Screen My Resume"):
             f"Focus on learning and adding these skills to your resume: "
             f"{', '.join(missing[:3])}"
     )
+
